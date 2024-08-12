@@ -649,10 +649,7 @@ function addInputListeners(input) {
     input.addEventListener('blur', (e) => {
         // 当输入框失去焦点时，从输入框添加新卡片
         if (e.target.value) {
-            if (input.id === 'addColumnInput'){
-                // 调用 addNewColumn 函数
-                addNewColumn();
-            }else if(input.className === 'longer-input'){
+            if(input.className === 'longer-input'){
                 // 调用 addCardFromInput 函数
                 addCardFromInput(e.target);
             }
@@ -661,7 +658,12 @@ function addInputListeners(input) {
     input.addEventListener('keydown', (e) => {
         // 当按下回车键时，模拟失去焦点事件
         if (e.key === 'Enter') {
-            input.blur();
+            if (input.id === 'addColumnInput'){
+                // 调用 addNewColumn 函数
+                addNewColumn();
+            }else {
+                input.blur();
+            }
         }
     });
 }
@@ -670,6 +672,8 @@ function addInputListeners(input) {
 function addNewColumn() {
     // 获取 id 为 'board' 的元素，该元素用于包含所有的列
     const board = document.getElementById('board');
+    // 获取输入框元素
+    const addColumnInput = document.getElementById('addColumnInput');
     // 获取输入框中的列名，并去除前后空格
     const columnName = addColumnInput.value.trim();
     // 如果列名不为空
@@ -681,7 +685,7 @@ function addNewColumn() {
         // 为新列元素添加拖拽事件监听器
         addColumnDragListeners(newColumn);
         // 为输入框添加事件监听器
-        addInputListeners(input);
+        addInputListeners(newColumn.querySelector('input'));
         // 清空输入框的内容
         addColumnInput.value = '';
     }else {
