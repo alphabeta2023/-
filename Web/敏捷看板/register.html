@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册页面</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .wave-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .main {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: #fff;
+            border: #fff solid 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .main-number {
+            font-size: 100px;
+            z-index: 1;
+            user-select: none;
+        }
+
+        @keyframes rotateAnimation {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .wave {
+            position: absolute;
+            top: 200px;
+            width: 400px;
+            height: 400px;
+            background: rgb(168, 168, 231);
+            border-radius: 40%;
+            animation: rotateAnimation 2s linear infinite;
+        }
+
+        .percent-bar {
+            width: 200px;
+            background: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>注册</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="username">用户名:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">密码:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="wave-container">
+                <div class="main">
+                    <div class="main-number" id="mainNumber">0</div>
+                    <div ref="wave" class="wave" id="wave"></div>
+                </div>
+                <input type="range" id="percentBar" class="percent-bar" min="0" max="99" value="0">
+            </div>
+            <div class="form-group">
+                <label for="captcha">请将进度条拖动到以下数字:</label>
+                <span id="captchaNumber"></span>
+            </div>
+            <button type="submit">注册</button>
+        </form>
+        <p>已经有账号？ <a href="login.html">登录</a></p>
+    </div>
+    <script>
+        const percentBar = document.getElementById('percentBar');
+        const mainNumber = document.getElementById('mainNumber');
+        const wave = document.getElementById('wave');
+        const captchaNumber = document.getElementById('captchaNumber');
+        let targetPercent = Math.floor(Math.random() * 99) + 1;
+        captchaNumber.innerText = targetPercent;
+
+        percentBar.addEventListener('input', function() {
+            const currentPercent = parseInt(percentBar.value);
+            mainNumber.innerText = currentPercent;
+            wave.style.top = `${200 * (1 - currentPercent / 100)}px`;
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const currentPercent = parseInt(percentBar.value);
+
+            if (localStorage.getItem(username)) {
+                alert('用户名已存在');
+                targetPercent = Math.floor(Math.random() * 99) + 1;
+                captchaNumber.innerText = targetPercent;
+                percentBar.value = 0;
+                mainNumber.innerText = 0;
+                wave.style.top = '200px';
+            } else if (currentPercent !== targetPercent) {
+                alert('验证错误，请重新输入');
+                targetPercent = Math.floor(Math.random() * 99) + 1;
+                captchaNumber.innerText = targetPercent;
+                percentBar.value = 0;
+                mainNumber.innerText = 0;
+                wave.style.top = '200px';
+            } else {
+                const user = { username, password };
+                localStorage.setItem(username, JSON.stringify(user));
+                alert('注册成功，请登录');
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+</html>

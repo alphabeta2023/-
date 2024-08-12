@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>敏捷看板</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            padding: 20px;
+            flex-direction: column;
+            color: #333;
+        }
+        .content {
+            flex-grow: 1;
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+        }
+        .column {
+            position: relative;
+            width: 30%;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        .card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-word;
+            display: flex;
+            flex-direction: column;
+            font-size: larger;
+            min-height: 80px;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        .card:hover {
+            background-color: #eef;
+        }
+        h2 {
+            text-align: center;
+            color: #000;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .delete-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            border: none;
+            background: none;
+            font-size: 1.2em;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .delete-button:hover {
+            color: #f00;
+        }
+        .card .exclamation-mark {
+            position: absolute !important;
+            top: 5px !important;
+            left: 5px !important;
+            width: 15px;
+            height: 15px;
+            background-color: red;
+            color: white;
+            text-align: center;
+            line-height: 15px;
+            border-radius: 50%;
+            font-size: 14px;
+        }
+        .longer-input, .add-column-input, .comment-input {
+            width: 100%;
+            height: 20px; /* 高度缩小一半 */
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 1em;
+            color: #333;
+            background-color: #f9f9f9;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            box-sizing: border-box; /* 防止超出父元素边界 */
+        }
+        .longer-input:focus, .add-column-input:focus, .comment-input:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            outline: none;
+        }
+        .card-content {
+            flex-grow: 1;
+            font-size: larger;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100%;
+            margin: 18px;
+        }
+        .card-dates {
+            display: none;
+            justify-content: space-between;
+            font-size: 0.8em;
+            color: #666;
+            cursor: pointer;
+            position: absolute;
+            bottom: 30px;
+            left: 5px;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            z-index: 1000;
+            font-size: smaller;
+            opacity: 0.9;
+        }
+        .calendar-icon {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            cursor: pointer;
+            font-size: 1.2em;
+            color: #999;
+            transition: color 0.3s;
+        }
+        .calendar-icon:hover {
+            color: #555;
+        }
+        .calendar-icon:hover + .card-dates {
+            display: flex;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 25px;
+            left: 5px;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            z-index: 1000;
+            font-size: smaller;
+            opacity: 0.9;
+        }
+        .dropdown-menu.show {
+            display: block;
+        }
+        .add-column-container {
+            margin-left: 5%;
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            align-items: center; /* 对齐新增列按钮 */
+        }
+        .add-column-input {
+            width: 200px;
+            height: 20px; /* 高度缩小一半 */
+            margin-right: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .add-column-button {
+            height: 40px;
+            padding: 0 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .add-column-button:hover {
+            background-color: #0056b3;
+        }
+        .comment-icon {
+            position: absolute;
+            bottom: 10px;
+            right: 40px;
+            cursor: pointer;
+            font-size: 1.2em;
+            color: #999;
+            transition: color 0.3s;
+        }
+        .comment-icon:hover {
+            color: #555;
+        }
+        .comment-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            z-index: 1000;
+            font-size: smaller;
+            opacity: 0.9;
+            width: calc(100% - 20px);
+        }
+        .comment-list {
+            margin-bottom: 10px;
+        }
+        .comment-input {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .image-icon {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 1.2em;
+            color: #999;
+            transition: color 0.3s;
+        }
+        .image-icon:hover {
+            color: #555;
+        }
+        .image-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: auto;
+            margin-bottom: 25px;
+        }
+    </style>
+</head>
+<body>
+    <div class="content" id="board">
+        <div class="column" id="待办">
+            <h2>待办</h2>
+            <div class="card" draggable="true">
+                <div class="card-content" onclick="editCard(this)">任务1</div>
+                <span class="calendar-icon" onclick="showCalendar(this)">📅</span>
+                <div class="card-dates">
+                    <span class="start-date">起始日期: 2024-08-01</span>
+                    <span class="end-date">结束日期: 2024-08-10</span>
+                </div>
+                <button class="delete-button" onclick="deleteCard(this)">×</button>
+                <span class="comment-icon">💬</span>
+                <span class="image-icon">🖼️</span>
+                <div class="image-container"></div>
+                <div class="comment-dropdown" style="display: none;">
+                    <div class="comment-list"></div>
+                </div>
+            </div>
+            <div class="card" draggable="true">
+                <div class="card-content" onclick="editCard(this)">任务2</div>
+                <span class="calendar-icon" onclick="showCalendar(this)">📅</span>
+                <div class="card-dates">
+                    <span class="start-date">起始日期: 2024-08-02</span>
+                    <span class="end-date">结束日期: 2024-08-11</span>
+                </div>
+                <button class="delete-button" onclick="deleteCard(this)">×</button>
+                <span class="comment-icon">💬</span>
+                <span class="image-icon">🖼️</span>
+                <div class="image-container"></div>
+                <div class="comment-dropdown" style="display: none;">
+                    <div class="comment-list"></div>
+                </div>
+            </div>
+            <input type="text" id="待办-input" class="longer-input" placeholder="添加新任务">
+            <button class="delete-button" onclick="deleteCard(this)">×</button>
+        </div>
+        <div class="column" id="进行中">
+            <h2>进行中</h2>
+            <div class="card" draggable="true">
+                <div class="card-content" onclick="editCard(this)">任务3</div>
+                <span class="calendar-icon" onclick="showCalendar(this)">📅</span>
+                <div class="card-dates">
+                    <span class="start-date">起始日期: 2024-08-03</span>
+                    <span class="end-date">结束日期: 2024-08-12</span>
+                </div>
+                <button class="delete-button" onclick="deleteCard(this)">×</button>
+                <span class="comment-icon">💬</span>
+                <span class="image-icon">🖼️</span>
+                <div class="image-container"></div>
+                <div class="comment-dropdown" style="display: none;">
+                    <div class="comment-list"></div>
+                </div>
+            </div>
+            <input type="text" id="进行中-input" class="longer-input" placeholder="添加新任务">
+            <button class="delete-button" onclick="deleteCard(this)">×</button>
+        </div>
+        <div class="column" id="已完成">
+            <h2>已完成</h2>
+            <div class="card" draggable="true">
+                <div class="card-content" onclick="editCard(this)">任务4</div>
+                <span class="calendar-icon" onclick="showCalendar(this)">📅</span>
+                <div class="card-dates">
+                    <span class="start-date">起始日期: 2024-08-04</span>
+                    <span class="end-date">结束日期: 2024-08-13</span>
+                </div>
+                <button class="delete-button" onclick="deleteCard(this)">×</button>
+                <span class="comment-icon">💬</span>
+                <span class="image-icon">🖼️</span>
+                <div class="image-container"></div>
+                <div class="comment-dropdown" style="display: none;">
+                    <div class="comment-list"></div>
+                </div>
+            </div>
+            <input type="text" id="已完成-input" class="longer-input" placeholder="添加新任务">
+            <button class="delete-button" onclick="deleteCard(this)">×</button>
+        </div>
+    </div>
+    <div class="add-column-container">
+        <input type="text" id="addColumnInput" class="add-column-input" placeholder="输入新列名称">
+        <button id="addColumnButton" class="add-column-button" onclick="addNewColumn()">新增列</button>
+    </div>
+
+    <script src="mainBoard.js"></script>
+</body>
+</html>
